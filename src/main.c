@@ -19,8 +19,36 @@
 #include <config.h>
 #endif
 
+#include <stdio.h>
+#include <unistd.h>
+#include <signal.h>
+#include <glib.h>
+#include <pthread.h>
+#include <stdbool.h>
+#include <getopt.h>
+#include <stdlib.h>
+
+static GMainLoop *mainloop = NULL;
+
+void signal_handler(int signal)
+{
+	g_main_loop_quit(mainloop);
+}
+
 int main(int argc, char **argv)
 {
+	signal(SIGTERM, signal_handler);
+	signal(SIGINT, signal_handler);
+
+	if (!g_thread_supported ())
+		g_thread_init (NULL);
+
+	mainloop = g_main_loop_new(NULL, FALSE);
+
+	g_main_loop_run(mainloop);
+
+	g_main_loop_unref(mainloop);
+
 	return 0;
 }
 
