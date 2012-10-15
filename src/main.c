@@ -28,9 +28,16 @@
 #include <getopt.h>
 #include <stdlib.h>
 
+#include "resume_handler.h"
+
 static GMainLoop *mainloop = NULL;
 
 void signal_handler(int signal)
+{
+	g_main_loop_quit(mainloop);
+}
+
+void wakeup_system(const char *reason)
 {
 	g_main_loop_quit(mainloop);
 }
@@ -45,7 +52,15 @@ int main(int argc, char **argv)
 
 	mainloop = g_main_loop_new(NULL, FALSE);
 
+	if (power_key_resume_handler_init() < 0) {
+		g_critical("Failed to initialize power key resume handler; exiting ...");
+		g_main_loop_unref(mainloop);
+		return -1;
+	}
+
 	g_main_loop_run(mainloop);
+
+	power_key_resume_handler_release();
 
 	g_main_loop_unref(mainloop);
 
