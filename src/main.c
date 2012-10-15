@@ -30,6 +30,8 @@
 
 #include "resume_handler.h"
 
+#define WAKEUP_SOURCE_PATH		"/tmp/wakeup_source"
+
 static GMainLoop *mainloop = NULL;
 
 void signal_handler(int signal)
@@ -39,6 +41,8 @@ void signal_handler(int signal)
 
 void wakeup_system(const char *reason)
 {
+	g_file_set_contents(WAKEUP_SOURCE_PATH, reason, strlen(reason), NULL);
+
 	g_main_loop_quit(mainloop);
 }
 
