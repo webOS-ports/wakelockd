@@ -62,8 +62,15 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
+	if (rtc_resume_handler_init() < 0) {
+		g_critical("Failed to initialize rtc resume handler; exiting ...");
+		g_main_loop_unref(mainloop);
+		return -1;
+	}
+
 	g_main_loop_run(mainloop);
 
+	rtc_resume_handler_release();
 	power_key_resume_handler_release();
 
 	g_main_loop_unref(mainloop);
