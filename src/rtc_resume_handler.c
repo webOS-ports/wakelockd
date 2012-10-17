@@ -24,8 +24,8 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <fcntl.h>
-
 #include <linux/rtc.h>
+#include <sys/ioctl.h>
 
 #include <glib.h>
 
@@ -42,6 +42,8 @@ gboolean _handle_rtc_event(GIOChannel *channel, GIOCondition condition, gpointer
 	int bytesread;
 	unsigned long data;
 	int wakeup = 0;
+	int ret;
+	struct rtc_wkalrm alarm;
 
 	if ((condition  & G_IO_IN) == G_IO_IN) {
 		bytesread = read(rtc_fd, &data, sizeof(unsigned long));
@@ -52,9 +54,32 @@ gboolean _handle_rtc_event(GIOChannel *channel, GIOCondition condition, gpointer
 		else if (data & RTC_AF) {
 			g_debug("Got rtc event -> waking up the system!");
 			wakeup = 1;
+
+			/* We may have to reschedule the event for some seconds in the future to
+			 * let other userland processes like sleepd (which should have issued the
+			 * alarm) react on the event as well. */
+
+			ret = ioctl(rtc_fd, RTC_WKALM_RD, &alarm);
+			if (ret < 0) {
+				g_warning("Failed to read RTC alarm from device; not rescheduling alarm!");
+				goto wakeup;
+			}
+
+			/* rescheduling two seconds in the future should be enough for userland to
+			 * wakeup */
+			alarm.time.tm_sec += 2;
+			alarm.enabled = 1;
+			alarm.pending = 1;
+
+			ret = ioctl(rtc_fd, RTC_WKALM_SET, &alarm);
+			if (ret < 0) {
+				g_warning("Could not reschedule alarm!");
+				goto wakeup;
+			}
 		}
 	}
 
+wakeup:
 	if (wakeup)
 		wakeup_system("rtc");
 
@@ -63,6 +88,11 @@ gboolean _handle_rtc_event(GIOChannel *channel, GIOCondition condition, gpointer
 
 int rtc_resume_handler_init(void)
 {
+	/* NOTE: opening rtc device her exclusivly will let sleepd to fail with all it's rtc
+	 * related operations while we're in suspend. The nyx system module is right now
+	 * implemented that way that it's only opening the rtc device eclusively when it needs
+	 * it. As long as sleepd reacts correctly for a failed nyx method call this should be
+	 * no problem. */
 	rtc_fd = open(RTC_DEVICE_PATH, O_RDONLY);
 	if (rtc_fd < 0)
 		return -ENODEV;
