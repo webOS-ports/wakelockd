@@ -70,11 +70,6 @@ int power_key_resume_handler_init(void)
 	if (input_source_fd < 0)
 		return -ENODEV;
 
-	if (ioctl(input_source_fd, EVIOCGRAB, 1) < 0) {
-		close(input_source_fd);
-		return -EIO;
-	}
-
 	channel = g_io_channel_unix_new(input_source_fd);
 	g_io_channel_set_encoding(channel, NULL, NULL);
 	readwatch = g_io_add_watch(channel, G_IO_IN | G_IO_HUP | G_IO_NVAL, _handle_input_event, NULL);
@@ -86,9 +81,6 @@ void power_key_resume_handler_release(void)
 {
 	g_source_remove(readwatch);
 	g_io_channel_unref(channel);
-
-	if (ioctl(input_source_fd, EVIOCGRAB, 0) < 0)
-		g_error("Could not ungrab input event source");
 
 	close(input_source_fd);
 }
