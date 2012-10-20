@@ -32,7 +32,13 @@
 
 #define WAKEUP_SOURCE_PATH		"/tmp/wakeup_source"
 
+enum {
+	RESUME_HANDLER_POWER_KEY	=	1,
+	RESUME_HANDLER_RTC	=	2,
+};
+
 static GMainLoop *mainloop = NULL;
+static int resume_handlers_not_active = 0;
 
 void signal_handler(int signal)
 {
@@ -57,21 +63,22 @@ int main(int argc, char **argv)
 	mainloop = g_main_loop_new(NULL, FALSE);
 
 	if (power_key_resume_handler_init() < 0) {
-		g_critical("Failed to initialize power key resume handler; exiting ...");
-		g_main_loop_unref(mainloop);
-		return -1;
+		g_warning("Failed to initialize power key resume handler!");
+		resume_handlers_not_active |= RESUME_HANDLER_POWER_KEY;
 	}
 
 	if (rtc_resume_handler_init() < 0) {
-		g_critical("Failed to initialize rtc resume handler; exiting ...");
-		g_main_loop_unref(mainloop);
-		return -1;
+		g_warning("Failed to initialize rtc resume handler!");
+		resume_handlers_not_active |= RESUME_HANDLER_RTC;
 	}
 
 	g_main_loop_run(mainloop);
 
-	rtc_resume_handler_release();
-	power_key_resume_handler_release();
+	if (!(resume_handlers_not_active & RESUME_HANDLER_RTC))
+		rtc_resume_handler_release();
+
+	if (!(resume_handlers_not_active & RESUME_HANDLER_POWER_KEY))
+		power_key_resume_handler_release();
 
 	g_main_loop_unref(mainloop);
 
