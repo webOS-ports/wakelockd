@@ -31,9 +31,9 @@
 
 #include "resume_handler.h"
 
-static int rtc_fd;
-static GIOChannel *channel;
-static int readwatch;
+static int rtc_fd = 0;
+static GIOChannel *channel = NULL;
+static int readwatch = 0;
 
 #define RTC_DEVICE_PATH		"/dev/rtc"
 
@@ -106,9 +106,14 @@ int rtc_resume_handler_init(void)
 
 void rtc_resume_handler_release(void)
 {
-	g_source_remove(readwatch);
-	g_io_channel_unref(channel);
-	close(rtc_fd);
+	if (readwatch > 0)
+		g_source_remove(readwatch);
+
+	if (channel != NULL)
+		g_io_channel_unref(channel);
+
+	if (rtc_fd > 0)
+		close(rtc_fd);
 }
 
 // vim:ts=4:sw=4:noexpandtab

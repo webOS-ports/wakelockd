@@ -31,9 +31,9 @@
 
 #include "resume_handler.h"
 
-static int input_source_fd;
-static GIOChannel *channel;
-static int readwatch;
+static int input_source_fd = 0;
+static GIOChannel *channel = NULL;
+static int readwatch = 0;
 
 #define INPUT_DEVICE_PATH		"/dev/input/event2"
 
@@ -79,10 +79,14 @@ int power_key_resume_handler_init(void)
 
 void power_key_resume_handler_release(void)
 {
-	g_source_remove(readwatch);
-	g_io_channel_unref(channel);
+	if (readwatch > 0)
+		g_source_remove(readwatch);
 
-	close(input_source_fd);
+	if (channel != NULL)
+		g_io_channel_unref(channel);
+
+	if (input_source_fd > 0)
+		close(input_source_fd);
 }
 
 // vim:ts=4:sw=4:noexpandtab
