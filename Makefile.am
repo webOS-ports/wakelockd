@@ -2,7 +2,7 @@ NULL =
 
 AM_MAKEFLAGS = --no-print-directory
 
-AM_CFLAGS = @GLIB_CFLAGS@
+AM_CFLAGS = @GLIB_CFLAGS@ @LIBEVDEV_CFLAGS@
 
 sbin_PROGRAMS = src/wakelockd
 
@@ -13,6 +13,7 @@ src_wakelockd_SOURCES = \
 
 src_wakelockd_LDADD = \
 	@GLIB_LIBS@ \
+	@LIBEVDEV_LIBS@ \
 	-ldl
 
 MAINTAINERCLEANFILES = Makefile.in \

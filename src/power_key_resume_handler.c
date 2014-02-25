@@ -28,14 +28,13 @@
 #include <glib.h>
 
 #include <linux/input.h>
+#include <libevdev/libevdev.h>
 
 #include "resume_handler.h"
 
 static int input_source_fd = 0;
 static GIOChannel *channel = NULL;
 static int readwatch = 0;
-
-#define INPUT_DEVICE_PATH		"/dev/input/event2"
 
 gboolean _handle_input_event(GIOChannel *channel, GIOCondition condition, gpointer data)
 {
@@ -66,7 +65,48 @@ gboolean _handle_input_event(GIOChannel *channel, GIOCondition condition, gpoint
 
 int power_key_resume_handler_init(void)
 {
-	input_source_fd = open(INPUT_DEVICE_PATH, O_RDONLY);
+	const char *node_path;
+	const char *full_path;
+	GDir *input_dir;
+	int rc = 1;
+	struct libevdev *dev = NULL;
+
+	input_dir = g_dir_open("/dev/input", 0, NULL);
+	if (!input_dir) {
+		g_warning("Failed to reach /dev/input directory");
+		return -ENODEV;
+	}
+
+	while ((node_path = g_dir_read_name(input_dir)) != NULL) {
+		full_path = g_strdup_printf("/dev/input/%s", node_path);
+
+		if (g_file_test(node_path, G_FILE_TEST_IS_DIR))
+			continue;
+
+		input_source_fd = open(full_path, O_RDONLY|O_NONBLOCK);
+		g_free(full_path);
+
+		if (input_source_fd < 0)
+			continue;
+
+		rc = libevdev_new_from_fd(input_source_fd, &dev);
+		if (rc < 0) {
+			fprintf(stderr, "Failed to init libevdev (%s)\n", strerror(-rc));
+			close(input_source_fd);
+			input_source_fd = -1;
+			continue;
+		}
+
+		if (libevdev_has_event_code(dev, EV_KEY, KEY_POWER)) {
+			libevdev_free(dev);
+			break;
+		}
+
+		libevdev_free(dev);
+		close(input_source_fd);
+		input_source_fd = -1;
+	}
+
 	if (input_source_fd < 0)
 		return -ENODEV;
 

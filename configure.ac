@@ -47,6 +47,11 @@ PKG_CHECK_MODULES(GLIB, glib-2.0 >= 2.28, dummy=yes,
 AC_SUBST(GLIB_CFLAGS)
 AC_SUBST(GLIB_LIBS)
 
+PKG_CHECK_MODULES(LIBEVDEV, libevdev >= 1.0, dummy=yes,
+				AC_MSG_ERROR(libevdev >= 1.0 is required))
+AC_SUBST(LIBEVDEV_CFLAGS)
+AC_SUBST(LIBEVDEV_LIBS)
+
 AC_OUTPUT([
 	Makefile
 ])
