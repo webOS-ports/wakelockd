@@ -84,16 +84,20 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
+#if 0
 	if (rtc_resume_handler_init() < 0) {
 		g_warning("Failed to initialize rtc resume handler!");
 		return -1;
 	}
+#endif
 
 	g_timeout_add(100, suspend_system_cb, NULL);
 
 	g_main_loop_run(mainloop);
 
+#if 0
 	rtc_resume_handler_release();
+#endif
 	power_key_resume_handler_release();
 
 	g_main_loop_unref(mainloop);
