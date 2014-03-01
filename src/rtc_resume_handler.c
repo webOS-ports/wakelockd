@@ -81,7 +81,7 @@ gboolean _handle_rtc_event(GIOChannel *channel, GIOCondition condition, gpointer
 
 wakeup:
 	if (wakeup)
-		wakeup_system("rtc");
+		wakeup_system("rtc", NULL);
 
 	return TRUE;
 }

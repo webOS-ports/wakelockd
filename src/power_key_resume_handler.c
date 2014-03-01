@@ -42,6 +42,8 @@ gboolean _handle_input_event(GIOChannel *channel, GIOCondition condition, gpoint
 	int wakeup = 0;
 	struct input_event ev;
 
+	libsuspend_acquire_wake_lock("wakelockd_handle_input_event");
+
 	if ((condition  & G_IO_IN) == G_IO_IN) {
 		bytesread = read(input_source_fd, &ev, sizeof(struct input_event));
 		if (bytesread == 0) {
@@ -58,7 +60,9 @@ gboolean _handle_input_event(GIOChannel *channel, GIOCondition condition, gpoint
 	}
 
 	if (wakeup)
-		wakeup_system("power_key");
+		wakeup_system("power_key", "wakelockd_handle_input_event");
+	else
+		libsuspend_release_wake_lock("wakelockd_handle_input_event");
 
 	return TRUE;
 }

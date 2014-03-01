@@ -18,7 +18,7 @@
 #ifndef RESUME_HANDLER_H_
 #define RESUME_HANDLER_H_
 
-void wakeup_system(const char *reason);
+void wakeup_system(const char *reason, const char *wakelock_to_release);
 
 int power_key_resume_handler_init(void);
 void power_key_resume_handler_release(void);

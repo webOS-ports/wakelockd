@@ -28,6 +28,8 @@
 #include <getopt.h>
 #include <stdlib.h>
 
+#include <libsuspend.h>
+
 #include "resume_handler.h"
 
 #define WAKEUP_SOURCE_PATH		"/tmp/wakeup_source"
@@ -40,8 +42,26 @@ void signal_handler(int signal)
 	g_main_loop_quit(mainloop);
 }
 
-void wakeup_system(const char *reason)
+static gboolean suspend_system_cb(gpointer user_data)
 {
+	g_message("Going to suspend the system now ...");
+
+	libsuspend_prepare_suspend();
+
+	libsuspend_enter_suspend();
+
+	return FALSE;
+}
+
+void wakeup_system(const char *reason, const char *wakelock_to_release)
+{
+	libsuspend_exit_suspend();
+
+	if (wakelock_to_release)
+		libsuspend_release_wake_lock(wakelock_to_release);
+
+	g_message("Waking up the system ...");
+
 	g_file_set_contents(WAKEUP_SOURCE_PATH, reason, strlen(reason), NULL);
 
 	g_main_loop_quit(mainloop);
@@ -55,6 +75,8 @@ int main(int argc, char **argv)
 	if (!g_thread_supported ())
 		g_thread_init (NULL);
 
+	libsuspend_init(0);
+
 	mainloop = g_main_loop_new(NULL, FALSE);
 
 	if (power_key_resume_handler_init() < 0) {
@@ -66,6 +88,8 @@ int main(int argc, char **argv)
 		g_warning("Failed to initialize rtc resume handler!");
 		return -1;
 	}
+
+	g_timeout_add(100, suspend_system_cb, NULL);
 
 	g_main_loop_run(mainloop);
 

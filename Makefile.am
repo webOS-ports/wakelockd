@@ -14,7 +14,8 @@ src_wakelockd_SOURCES = \
 src_wakelockd_LDADD = \
 	@GLIB_LIBS@ \
 	@LIBEVDEV_LIBS@ \
-	-ldl
+	-ldl \
+	-lsuspend
 
 MAINTAINERCLEANFILES = Makefile.in \
 	aclocal.m4 configure config.h.in config.sub config.guess \
