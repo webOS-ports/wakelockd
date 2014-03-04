@@ -1,0 +1,14 @@
+{
+    "role": {
+        "exeName":"@WEBOS_INSTALL_SBINDIR@/wakelockd",
+        "type": "privileged",
+        "allowedNames": ["org.webosports.wakelockd"]
+    },
+    "permissions": [
+        {
+            "service":"org.webosports.wakelockd",
+            "inbound":["*"],
+            "outbound":["*"]
+        }
+    ]
+}

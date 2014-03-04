@@ -29,6 +29,8 @@
 #include <getopt.h>
 #include <stdlib.h>
 
+#include <luna-service.h>
+
 #include <libsuspend.h>
 
 #include "resume_handler.h"
@@ -36,6 +38,7 @@
 #define WAKEUP_SOURCE_PATH		"/tmp/wakeup_source"
 
 static GMainLoop *mainloop = NULL;
+LSHandle *service_handle = NULL;
 
 void signal_handler(int signal)
 {
@@ -69,12 +72,28 @@ void wakeup_system(const char *reason, const char *wakelock_to_release)
 
 int main(int argc, char **argv)
 {
+	LSError lserror;
+
+	LSErrorInit(&lserror);
+
 	signal(SIGTERM, signal_handler);
 	signal(SIGINT, signal_handler);
 
 	libsuspend_init(0);
 
 	mainloop = g_main_loop_new(NULL, FALSE);
+
+	if (!LSRegisterPubPriv("org.webosports.wakelockd", &service_handle, false, &lserror)) {
+		g_warning("Failed to register luna service: %s", lserror.message);
+		LSErrorFree(&lserror);
+		return -1;
+	}
+
+	if (!LSGmainAttach(service_handle, mainloop, &lserror)) {
+		g_warning("Failed to attach service to mainloop: %s", lserror.message);
+		LSErrorFree(&lserror);
+		goto cleanup;
+	}
 
 	if (power_key_resume_handler_init() < 0) {
 		g_warning("Failed to initialize power key resume handler!");
@@ -92,10 +111,14 @@ int main(int argc, char **argv)
 
 	g_main_loop_run(mainloop);
 
+cleanup:
 #if 0
 	rtc_resume_handler_release();
 #endif
 	power_key_resume_handler_release();
+
+	if (service_handle)
+		LSUnregister(service_handle, NULL);
 
 	g_main_loop_unref(mainloop);
 

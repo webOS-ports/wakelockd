@@ -1,0 +1,4 @@
+[D-BUS Service]
+Name=org.webosports.wakelockd
+Exec=@WEBOS_INSTALL_SBINDIR@/wakelockd
+Type=static

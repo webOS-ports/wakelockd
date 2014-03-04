@@ -44,6 +44,14 @@ pkg_check_modules(LIBEVDEV REQUIRED libevdev)
 include_directories(${LIBEVDEV_INCLUDE_DIRS})
 webos_add_compiler_flags(ALL ${LIBEVDEV_CFLAGS_OTHER})
 
+pkg_check_modules(LUNASERVICE2 REQUIRED luna-service2)
+include_directories(${LUNASERVICE2_INCLUDE_DIRS})
+webos_add_compiler_flags(ALL ${LUNASERVICE2_CFLAGS})
+
+pkg_check_modules(PBNJSON_C REQUIRED pbnjson_c)
+include_directories(${PBNJSON_C_INCLUDE_DIRS})
+webos_add_compiler_flags(ALL ${PBNJSON_C_CFLAGS_OTHER})
+
 file(GLOB SOURCES
     src/main.c
     src/power_key_resume_handler.c
@@ -55,6 +63,8 @@ webos_add_linker_options(ALL --no-undefined)
 add_executable(wakelockd ${SOURCES})
 target_link_libraries(wakelockd
     ${GLIB2_LDFLAGS} ${GIO2_LDFLAGS} ${GIO-UNIX_LDFLAGS}
+    ${LUNASERVICE2_LDFLAGS} ${PBNJSON_C_LDFLAGS}
     ${LIBEVDEV_LDFLAGS} rt pthread suspend)
 
 webos_build_daemon()
+webos_build_system_bus_files()
