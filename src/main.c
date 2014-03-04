@@ -20,6 +20,7 @@
 #endif
 
 #include <stdio.h>
+#include <string.h>
 #include <unistd.h>
 #include <signal.h>
 #include <glib.h>
@@ -35,7 +36,6 @@
 #define WAKEUP_SOURCE_PATH		"/tmp/wakeup_source"
 
 static GMainLoop *mainloop = NULL;
-static int resume_handlers_not_active = 0;
 
 void signal_handler(int signal)
 {
@@ -71,9 +71,6 @@ int main(int argc, char **argv)
 {
 	signal(SIGTERM, signal_handler);
 	signal(SIGINT, signal_handler);
-
-	if (!g_thread_supported ())
-		g_thread_init (NULL);
 
 	libsuspend_init(0);
 

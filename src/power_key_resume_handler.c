@@ -20,6 +20,7 @@
 #endif
 
 #include <stdio.h>
+#include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -29,6 +30,8 @@
 
 #include <linux/input.h>
 #include <libevdev/libevdev.h>
+
+#include <libsuspend.h>
 
 #include "resume_handler.h"
 
@@ -70,7 +73,7 @@ gboolean _handle_input_event(GIOChannel *channel, GIOCondition condition, gpoint
 int power_key_resume_handler_init(void)
 {
 	const char *node_path;
-	const char *full_path;
+    char *full_path;
 	GDir *input_dir;
 	int rc = 1;
 	struct libevdev *dev = NULL;
