@@ -29,7 +29,7 @@
 #include <getopt.h>
 #include <stdlib.h>
 
-#include <luna-service.h>
+#include <lunaservice.h>
 
 #include <libsuspend.h>
 
