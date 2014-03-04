@@ -55,7 +55,8 @@ webos_add_compiler_flags(ALL ${PBNJSON_C_CFLAGS_OTHER})
 file(GLOB SOURCES
     src/main.c
     src/power_key_resume_handler.c
-    src/rtc_resume_handler.c)
+    src/rtc_resume_handler.c
+    src/usb_resume_handler.c)
 
 webos_add_compiler_flags(ALL -Wall)
 webos_add_linker_options(ALL --no-undefined)

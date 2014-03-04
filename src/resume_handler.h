@@ -26,6 +26,9 @@ void power_key_resume_handler_release(void);
 int rtc_resume_handler_init(void);
 void rtc_resume_handler_release(void);
 
+int usb_resume_handler_init(void);
+void usb_resume_handler_release(void);
+
 #endif
 
 // vim:ts=4:sw=4:noexpandtab

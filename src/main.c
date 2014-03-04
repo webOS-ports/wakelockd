@@ -97,15 +97,20 @@ int main(int argc, char **argv)
 
 	if (power_key_resume_handler_init() < 0) {
 		g_warning("Failed to initialize power key resume handler!");
-		return -1;
+		goto cleanup;
 	}
 
 #if 0
 	if (rtc_resume_handler_init() < 0) {
 		g_warning("Failed to initialize rtc resume handler!");
-		return -1;
+		goto cleanup;
 	}
 #endif
+
+	if (usb_resume_handler_init() < 0) {
+		g_warning("Could not initialize usb resume handler");
+		goto cleanup;
+	}
 
 	g_timeout_add(100, suspend_system_cb, NULL);
 
