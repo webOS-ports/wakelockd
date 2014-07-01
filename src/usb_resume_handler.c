@@ -45,7 +45,7 @@ static bool usb_dock_status_changed_cb(LSHandle *handle, LSMessage *message, voi
 
 	payload = LSMessageGetPayload(message);
 	if (!payload)
-		return true;
+		goto done;
 
 	input_schema = jschema_parse(j_cstr_to_buffer("{}"), DOMOPT_NOOPT, NULL);
 	jschema_info_init(&schema_info, input_schema, NULL, NULL);
@@ -54,18 +54,19 @@ static bool usb_dock_status_changed_cb(LSHandle *handle, LSMessage *message, voi
 
 	jschema_release(&input_schema);
 	if (jis_null(parsed_obj))
-		return true;
+		goto done;
 
 	if (!jobject_get_exists(parsed_obj, J_CSTR_TO_BUF("USBConnected"), &usb_connected_obj) ||
 		!jis_boolean(usb_connected_obj))
-		return true;
+		goto done;
 
 	jboolean_get(usb_connected_obj, &usb_connected);
 
 	if (usb_connected)
 		wakeup_system("usb", "wakelockd_usb_event");
-	else
-		libsuspend_release_wake_lock("wakelockd_usb_event");
+
+done:
+	libsuspend_release_wake_lock("wakelockd_usb_event");
 
 	return true;
 }
